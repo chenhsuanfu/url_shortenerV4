@@ -7,6 +7,8 @@ const exphbs = require('express-handlebars')
 // 定義連接 port number
 const port = 3000
 
+
+
 // 加入這段 code, 僅在非正式環境時, 使用 dotenv
 if (process.env.NODE_ENV !== 'production'){
     require('dotenv').config()
@@ -26,13 +28,22 @@ db.once('open', () => {
     console.log('mongodb connected!')
 })
 
+// 設定 body-parser
+app.use(express.urlencoded({ extended: true }))
+
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs'}))
 app.set('view engine', 'hbs')
 // 設定express靜態檔案位置
 app.use(express.static('public'))
 
+
 // 設定網頁路由
 app.get('/', (req, res)=>{
+    res.render('index')
+})
+// 設定 POST 路由
+app.post('/', (req, res) => {
+    console.log('req.body', req.body)
     res.render('index')
 })
 
