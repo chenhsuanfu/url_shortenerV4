@@ -28,6 +28,8 @@ db.once('open', () => {
 
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs'}))
 app.set('view engine', 'hbs')
+// 設定express靜態檔案位置
+app.use(express.static('public'))
 
 // 設定網頁路由
 app.get('/', (req, res)=>{
