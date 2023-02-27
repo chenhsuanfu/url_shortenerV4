@@ -6,10 +6,12 @@ const mongoose = require('mongoose')
 const exphbs = require('express-handlebars')
 // 引用 body-parser
 const bodyParser = require('body-parser')
+// 載入 method-override
+const methodOverride = require('method-override')
 // 載入 URL.js
 const URL = require('./models/URL')
 // 載入 newIndex.js
-const generate_newIndex = require('./newIndex')
+const generate_newIndex = require('./generate_shortenerURL/newIndex')
 // 定義連接 port number
 const port = 3000
 
@@ -41,7 +43,8 @@ app.use(express.static('public'))
 
 // 設定 body-parser
 app.use(bodyParser.urlencoded({ extended: true }))
-
+// 設定每一筆請求都會透過 methodOverride 進行前置處理
+app.use(methodOverride('_method'))
 // 設定網頁路由
 app.get('/', (req, res)=>{
     res.render('index')
