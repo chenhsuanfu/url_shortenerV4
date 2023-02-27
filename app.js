@@ -50,12 +50,13 @@ app.get('/', (req, res)=>{
 app.post('/', (req, res) => {
     if(!req.body.url) return res.redirect('/')
     const originalURL = req.body.url
-    const shortenerURL = req.headers.origin + "/" + generate_newIndex(req.body)
+    const shortenerURL = generate_newIndex(req.body)
+    const host = req.headers.origin
     URL.findOne({ originalURL: req.body.url })
         .lean()
         .then( data => {
-            if(data) return res.render('index', { shortenerURL: data.shortenerURL})
-            res.render('index', { shortenerURL })
+            if(data) return res.render('index', { host, shortenerURL: data.shortenerURL})
+            res.render('index', { host, shortenerURL })
             URL.create({ originalURL, shortenerURL})
         } )
         .catch(error => console.error(error))
@@ -63,20 +64,22 @@ app.post('/', (req, res) => {
     //console.log("", originalURL)
 })
 
-// app.get('/:shortenerURL', (req, res) => {
-//     const shortenerURL = req.params.shortenerURL
-//     URL.findOne({ shortenerURL })
-//         .then( data => {
-//             if (!data) {
-//                 return res.render("error", {
-//                     errorMsg: "Can't found the URL"
-//                     errorURL: req.header.host + "/" + shortenerURL,
-//                 })
-//             }
-//             res.redirect(data.originalURL)
-//         })
-//         .catch(error => console.error(error))
-// })
+app.get('/:shortenerURL', (req, res) => {
+     const shortenerURL = req.params.shortenerURL
+     URL.findOne({ shortenerURL })
+        .lean()
+        .then(data => {
+            if(!data) {
+                return res.render('error', {
+                    errorMsg: "Can't found the URL"
+                    //errorURL: req.headers.host + "/" + shortenerURL,
+                })
+            }
+            res.redirect(data.originalURL)
+        })
+        .catch(error => console.error(error))
+})
+
 
 // 啟動伺服器監聽
 app.listen(port, ()=>{
