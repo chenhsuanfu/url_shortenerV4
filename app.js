@@ -4,6 +4,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 // 載入 express-handlebars
 const exphbs = require('express-handlebars')
+// 載入 newIndex.js
+const generate_newIndex = require('./newIndex')
 // 定義連接 port number
 const port = 3000
 
@@ -43,8 +45,10 @@ app.get('/', (req, res)=>{
 })
 // 設定 POST 路由
 app.post('/', (req, res) => {
-    console.log('req.body', req.body)
-    res.render('index')
+    // 本地網址+短網址
+    const shortenerURL = req.headers.origin + "/" + generate_newIndex(req.body) 
+    //console.log('newIndex is :', shortenerURL)
+    res.render('index', { shortenerURL: shortenerURL })
 })
 
 // 啟動伺服器監聽
