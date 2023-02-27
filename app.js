@@ -4,6 +4,10 @@ const express = require('express')
 const mongoose = require('mongoose')
 // 載入 express-handlebars
 const exphbs = require('express-handlebars')
+// 引用 body-parser
+const bodyParser = require('body-parser')
+// 載入 URL.js
+const URL = require('./models/URL')
 // 載入 newIndex.js
 const generate_newIndex = require('./newIndex')
 // 定義連接 port number
@@ -30,26 +34,49 @@ db.once('open', () => {
     console.log('mongodb connected!')
 })
 
-// 設定 body-parser
-app.use(express.urlencoded({ extended: true }))
-
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs'}))
 app.set('view engine', 'hbs')
 // 設定express靜態檔案位置
 app.use(express.static('public'))
 
+// 設定 body-parser
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // 設定網頁路由
 app.get('/', (req, res)=>{
     res.render('index')
 })
-// 設定 POST 路由
+// 設定 POST 路由，設定一條新路由，來接住表單資料，並將資料送往資料庫
 app.post('/', (req, res) => {
-    // 本地網址+短網址
-    const shortenerURL = req.headers.origin + "/" + generate_newIndex(req.body) 
-    //console.log('newIndex is :', shortenerURL)
-    res.render('index', { shortenerURL: shortenerURL })
+    if(!req.body.url) return res.redirect('/')
+    const originalURL = req.body.url
+    const shortenerURL = req.headers.origin + "/" + generate_newIndex(req.body)
+    URL.findOne({ originalURL: req.body.url })
+        .lean()
+        .then( data => {
+            if(data) return res.render('index', { shortenerURL: data.shortenerURL})
+            res.render('index', { shortenerURL })
+            URL.create({ originalURL, shortenerURL})
+        } )
+        .catch(error => console.error(error))
+    //console.log("", shortenerURL)
+    //console.log("", originalURL)
 })
+
+// app.get('/:shortenerURL', (req, res) => {
+//     const shortenerURL = req.params.shortenerURL
+//     URL.findOne({ shortenerURL })
+//         .then( data => {
+//             if (!data) {
+//                 return res.render("error", {
+//                     errorMsg: "Can't found the URL"
+//                     errorURL: req.header.host + "/" + shortenerURL,
+//                 })
+//             }
+//             res.redirect(data.originalURL)
+//         })
+//         .catch(error => console.error(error))
+// })
 
 // 啟動伺服器監聽
 app.listen(port, ()=>{
